@@ -2,7 +2,6 @@ import json
 import os, glob
 import cv2
 import numpy as np
-from save_json import save_json
 from graphviz import Digraph
 class visualize():
     def __init__(self,image_dir, color_map = None,line_color_map = None, is_put_text = False, pad_size = (0, 0)):
@@ -91,9 +90,9 @@ class visualize():
         self.mode = mode
         if self.mode == 'iccv_hoiw':
             self.bbox_mode = 'xyxy'
-            self.verb_name_dict = {1: 'smoke', 2: 'call handheld', 3: 'call hands-free', 4: 'eat', 5: 'drink',
+            self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
                                    6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
-            self.obj_name_dict = {1: 'person', 2: 'telephone', 3: 'cigarette', 4: 'water container', 5: 'food',
+            self.obj_name_dict = {1: 'person', 2: 'telephone', 3: 'cigarette', 4: 'drink', 5: 'food',
                                   6: 'cycle', 7: 'motorbike', 8: 'horse', 9: 'ball', 10: 'document', 11: 'computer'}
             format_annot = []
             annotation = json.load(open(annot_file, 'r'))
@@ -113,8 +112,16 @@ class visualize():
     def vis_one_image(self, filename):
         image = cv2.imread(os.path.join(self.image_dir, filename))
         annotation = self.annotations[self.file_name.index(filename)]
-        vis_image = self.vis_bbox(image, annotation['annotations'])
-        return vis_image
+        print(annotation)
+        if annotation['annotations'].__contains__('hoi'):
+            bbox_list = annotation['annotations']['bbox_list']
+            hoi = annotation['annotations']['hoi']
+            vis_img = self.vis_hoi(image, bbox_list, hoi)
+        else:
+            bbox_list = annotation
+            vis_img = self.vis_bbox(image, bbox_list)
+        cv2.imshow('vis img', vis_img)
+        cv2.waitKey(0)
 
     def vis_all_images(self, outdir):
         if not os.path.exists(outdir):
