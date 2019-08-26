@@ -18,12 +18,12 @@ This repository provides python API that assists in loading, parsing and visuali
 For HOI visulization on an image, run:
 
 ~~~
-python demo.py --image_dir ./iccv_hoiw/images/trainval --annot_file ./iccv_hoiw/annot/trainval.json --image_name trainval_000001.png
+python demo.py --image_dir ./demo/images --annot_file ./demo/example.json --image_name trainval_000001.png
 ~~~
 For HOI visulization on all images in an annotation file, run:
 
 ~~~
-python demo.py --image_dir ./iccv_hoiw/images/trainval --annot_file ./iccv_hoiw/annot/trainval.json --output_path vis_hoiw
+python demo.py --image_dir ./demo/images --annot_file ./demo/example.json --output_path vis_hoiw
 ~~~
 
 
