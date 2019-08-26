@@ -4,8 +4,7 @@ This repository provides python API that assists in loading, parsing and visuali
 1. Clone this repo:
 
     ~~~
-    CenterNet_ROOT=/path/to/clone/CenterNet
-    git clone https://github.com/xingyizhou/CenterNet $CenterNet_ROOT
+    git clone https://github.com/YueLiao/PIC_HOIW.git
     ~~~
 
 
