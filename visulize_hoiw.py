@@ -92,8 +92,8 @@ class visualize():
             self.bbox_mode = 'xyxy'
             self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
                                    6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
-            self.obj_name_dict = {1: 'person', 2: 'telephone', 3: 'cigarette', 4: 'drink', 5: 'food',
-                                  6: 'cycle', 7: 'motorbike', 8: 'horse', 9: 'ball', 10: 'document', 11: 'computer'}
+            self.obj_name_dict = {1: 'person', 2: 'cellphone', 3: 'cigarette', 4: 'drink', 5: 'food',
+                                  6: 'bike', 7: 'motorbike', 8: 'horse', 9: 'ball', 10: 'document', 11: 'computer'}
             format_annot = []
             annotation = json.load(open(annot_file, 'r'))
             for h_annot in annotation:
