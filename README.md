@@ -26,4 +26,12 @@ For HOI visulization on all images in an annotation file, run:
 python demo.py --image_dir ./demo/images --annot_file ./demo/example.json --output_path vis_hoiw
 ~~~
 
+For evaluating your result, run:
+
+~~~
+from evalution import hoiw_eval
+eval_demo = hoiw_eval('annotation.json')
+eval_demo.evalution('prediction.json')
+~~~
+
 
