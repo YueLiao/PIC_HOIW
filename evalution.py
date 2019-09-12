@@ -2,7 +2,7 @@ import json
 import numpy as np
 import os
 
-class hoiw():
+class hoiw_eval():
     def __init__(self, annotation_file):
         self.annotations = json.load(open(annotation_file, 'r'))
         self.overlap_iou = 0.5
