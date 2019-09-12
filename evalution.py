@@ -58,12 +58,12 @@ class hoiw():
                 prec[v] = max(prec[v], prec[v + 1])
             for v in range(res_num):
                 if v == 0:
-                    ap[i] += rec[v] * prec[v]
+                    ap[i-1] += rec[v] * prec[v]
                 else:
-                    ap[i] += (rec[v] - rec[v - 1]) * prec[v]
-            max_recall[i] = np.max(rec)
+                    ap[i-1] += (rec[v] - rec[v - 1]) * prec[v]
+            max_recall[i-1] = np.max(rec)
             print('class {} --- ap: {}   max recall: {}'.format(
-                i, ap[i], max_recall[i]))
+                i, ap[i-1], max_recall[i-1]))
         mAP = np.mean(ap[1:])
         m_rec = np.mean(max_recall[1:])
         print('--------------------')
@@ -111,6 +111,7 @@ class hoiw():
                     max_iou = iou_i
         iou_mat[iou_mat>= 0.5] = 1
         iou_mat[iou_mat< 0.5] = 0
+
         match_pairs = np.nonzero(iou_mat)
         match_pairs_dict = {}
         if iou_mat.max() > 0:
@@ -146,5 +147,4 @@ class hoiw():
                 return intersect / (sum_area - intersect)
         else:
             return 0
-
 
