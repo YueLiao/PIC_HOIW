@@ -2,13 +2,12 @@ import json
 import numpy as np
 import os
 
-class hoiw_eval():
+class hoiw():
     def __init__(self, annotation_file):
         self.annotations = json.load(open(annotation_file, 'r'))
         self.overlap_iou = 0.5
         self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
                             6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
-        self.obj_name_dict = []
         self.file_name = []
         for gt_i in self.annotations:
             self.file_name.append(gt_i['file_name'])
@@ -25,7 +24,6 @@ class hoiw_eval():
         predict_annot = json.load(open(prediction_json, 'r'))
         for pred_i in predict_annot:
             if pred_i['file_name'] not in self.file_name:
-                print('img:{} is not in the evalution set'.format(pred_i['file_name']))
                 continue
             gt_i = self.annotations[self.file_name.index(pred_i['file_name'])]
             gt_bbox = gt_i['annotations']
@@ -78,10 +76,17 @@ class hoiw_eval():
         vis_tag = np.zeros(len(gt_hoi))
         pred_hoi.sort(key=lambda k: (k.get('score', 0)), reverse=True)
         for gt_hoi_i in gt_hoi:
-            self.sum_gt[gt_hoi_i['category_id']] += 1
+            if isinstance(gt_hoi_i['category_id'],str):
+                gt_hoi_i['category_id'] = int(gt_hoi_i['category_id'].replace('\n',''))
+            if gt_hoi_i['category_id'] in self.verb_name_dict.keys():
+                self.sum_gt[gt_hoi_i['category_id']] += 1
         if len(pred_hoi) != 0:
             for i, pred_hoi_i in enumerate(pred_hoi):
                 is_match = 0
+                if isinstance(pred_hoi_i['category_id'], str):
+                    pred_hoi_i['category_id'] = int(pred_hoi_i['category_id'].replace('\n', ''))
+                if pred_hoi_i['category_id'] in self.verb_name_dict.keys():
+                    continue
                 if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i['object_id'] in pos_pred_ids:
                     pred_dict_i = {'subject_id': match_pairs[pred_hoi_i['subject_id']], 'object_id': match_pairs[pred_hoi_i['object_id']], 'category_id': pred_hoi_i['category_id']}
                     if pred_dict_i in gt_hoi and vis_tag[gt_hoi.index(pred_dict_i)] == 0:
@@ -116,6 +121,10 @@ class hoiw_eval():
         return match_pairs_dict
 
     def compute_IOU(self, bbox1, bbox2):
+        if isinstance(bbox1['category_id'], str):
+            bbox1['category_id'] = int(bbox1['category_id'].replace('\n', ''))
+        if isinstance(bbox2['category_id'], str):
+            bbox2['category_id'] = int(bbox2['category_id'].replace('\n', ''))
         if bbox1['category_id'] == bbox2['category_id']:
             rec1 = bbox1['bbox']
             rec2 = bbox2['bbox']
@@ -139,3 +148,4 @@ class hoiw_eval():
                 return intersect / (sum_area - intersect)
         else:
             return 0
+
