@@ -76,7 +76,7 @@ class hoiw():
         vis_tag = np.zeros(len(gt_hoi))
         pred_hoi.sort(key=lambda k: (k.get('score', 0)), reverse=True)
         for gt_hoi_i in gt_hoi:
-            if isinstance(gt_hoi_i['category_id'],str):
+            if isinstance(gt_hoi_i['category_id'], str):
                 gt_hoi_i['category_id'] = int(gt_hoi_i['category_id'].replace('\n',''))
             if gt_hoi_i['category_id'] in self.verb_name_dict.keys():
                 self.sum_gt[gt_hoi_i['category_id']] += 1
@@ -85,7 +85,8 @@ class hoiw():
                 is_match = 0
                 if isinstance(pred_hoi_i['category_id'], str):
                     pred_hoi_i['category_id'] = int(pred_hoi_i['category_id'].replace('\n', ''))
-                if pred_hoi_i['category_id'] in self.verb_name_dict.keys():
+                print(list(self.verb_name_dict.keys()))
+                if pred_hoi_i['category_id'] not in list(self.verb_name_dict.keys()):
                     continue
                 if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i['object_id'] in pos_pred_ids:
                     pred_dict_i = {'subject_id': match_pairs[pred_hoi_i['subject_id']], 'object_id': match_pairs[pred_hoi_i['object_id']], 'category_id': pred_hoi_i['category_id']}
@@ -148,4 +149,5 @@ class hoiw():
                 return intersect / (sum_area - intersect)
         else:
             return 0
+
 
