@@ -8,9 +8,6 @@ class hoiw_eval():
         self.overlap_iou = 0.5
         self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
                             6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
-        self.file_name = []
-        for gt_i in self.annotations:
-            self.file_name.append(gt_i['file_name'])
         self.fp = {}
         self.tp = {}
         self.sum_gt = {}
@@ -18,6 +15,16 @@ class hoiw_eval():
             self.fp[i] = []
             self.tp[i] = []
             self.sum_gt[i] = 0
+        self.file_name = []
+        for gt_i in self.annotations:
+            self.file_name.append(gt_i['file_name'])
+            gt_hoi = gt_i['hoi_annotation']
+            for gt_hoi_i in gt_hoi:
+                if isinstance(gt_hoi_i['category_id'], str):
+                    gt_hoi_i['category_id'] = int(gt_hoi_i['category_id'].replace('\n', ''))
+                if gt_hoi_i['category_id'] in list(self.verb_name_dict.keys()):
+                    self.sum_gt[gt_hoi_i['category_id']] += 1
+        print(self.sum_gt)
         self.num_class = len(list(self.verb_name_dict.keys()))
 
     def evalution(self, prediction_json):
@@ -39,13 +46,14 @@ class hoiw_eval():
         ap = np.zeros(self.num_class)
         max_recall = np.zeros(self.num_class)
         for i in list(self.verb_name_dict.keys()):
-
             sum_gt = self.sum_gt[i]
             if sum_gt == 0:
                 continue
             tp = (self.tp[i]).copy()
             fp = (self.fp[i]).copy()
             res_num = len(tp)
+            if res_num == 0:
+                continue
             rec = np.zeros(res_num)
             prec = np.zeros(res_num)
             for v in range(res_num):
@@ -75,11 +83,6 @@ class hoiw_eval():
         pos_pred_ids = match_pairs.keys()
         vis_tag = np.zeros(len(gt_hoi))
         pred_hoi.sort(key=lambda k: (k.get('score', 0)), reverse=True)
-        for gt_hoi_i in gt_hoi:
-            if isinstance(gt_hoi_i['category_id'], str):
-                gt_hoi_i['category_id'] = int(gt_hoi_i['category_id'].replace('\n',''))
-            if gt_hoi_i['category_id'] in list(self.verb_name_dict.keys()):
-                self.sum_gt[gt_hoi_i['category_id']] += 1
         if len(pred_hoi) != 0:
             for i, pred_hoi_i in enumerate(pred_hoi):
                 is_match = 0
@@ -104,11 +107,13 @@ class hoiw_eval():
         iou_mat = np.zeros((len(bbox_list1), len(bbox_list2)))
         for i, bbox1 in enumerate(bbox_list1):
             max_iou = -0.1
+            select_id = 0
             for j, bbox2 in enumerate(bbox_list2):
                 iou_i = self.compute_IOU(bbox1, bbox2)
                 if iou_i > max_iou:
-                    iou_mat[i, j] = iou_i
+                    select_id = j
                     max_iou = iou_i
+            iou_mat[i, select_id] = max_iou
         iou_mat[iou_mat>= 0.5] = 1
         iou_mat[iou_mat< 0.5] = 0
 
