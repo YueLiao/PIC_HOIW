@@ -35,7 +35,7 @@ class visualize():
                               np.asscalar(self.bbox_color_map[bbox_cate][2]))
             else:
                 this_color_map = self.bbox_color_map[0]
-            cv2.rectangle(pad_img, (bbox_cor[0] + self.pad_size[0], bbox_cor[1] + self.pad_size[1]), (bbox_cor[2] + self.pad_size[0], bbox_cor[3] + self.pad_size[1]),
+            cv2.rectangle(pad_img, (int(bbox_cor[0]) + self.pad_size[0], int(bbox_cor[1]) + self.pad_size[1]), (int(bbox_cor[2]) + self.pad_size[0], int(bbox_cor[3]) + self.pad_size[1]),
                           this_color_map, 2)
 
             if self.is_put_text:
@@ -102,6 +102,13 @@ class visualize():
                                 h in h_annot['hoi_annotation']]
                     new_annot = {'bbox_list':h_annot['annotations'], 'hoi': hoi_annt}
                     h_annot.pop('hoi_annotation')
+                    h_annot['annotations'] = new_annot
+                elif h_annot.__contains__('hoi_prediction'):
+                    hoi_annt = [[h['subject_id'], h['object_id'], h['category_id']] for
+                                h in h_annot['hoi_prediction']]
+                    new_annot = {'bbox_list':h_annot['predictions'], 'hoi': hoi_annt}
+                    h_annot.pop('hoi_prediction')
+                    h_annot.pop('predictions')
                     h_annot['annotations'] = new_annot
                 self.file_name.append(h_annot['file_name'])
                 format_annot.append(h_annot)
