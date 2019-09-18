@@ -18,7 +18,7 @@ class hoiw_eval():
             self.score[i] = []
             self.sum_gt[i] = 0
         self.file_name = []
-        for gt_i in self.annotations[0:101]:
+        for gt_i in self.annotations:
             self.file_name.append(gt_i['file_name'])
             gt_hoi = gt_i['hoi_annotation']
             for gt_hoi_i in gt_hoi:
