@@ -10,13 +10,15 @@ class hoiw_eval():
                             6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
         self.fp = {}
         self.tp = {}
+        self.score = {}
         self.sum_gt = {}
         for i in list(self.verb_name_dict.keys()):
             self.fp[i] = []
             self.tp[i] = []
+            self.score[i] = []
             self.sum_gt[i] = 0
         self.file_name = []
-        for gt_i in self.annotations:
+        for gt_i in self.annotations[0:101]:
             self.file_name.append(gt_i['file_name'])
             gt_hoi = gt_i['hoi_annotation']
             for gt_hoi_i in gt_hoi:
@@ -24,7 +26,6 @@ class hoiw_eval():
                     gt_hoi_i['category_id'] = int(gt_hoi_i['category_id'].replace('\n', ''))
                 if gt_hoi_i['category_id'] in list(self.verb_name_dict.keys()):
                     self.sum_gt[gt_hoi_i['category_id']] += 1
-        print(self.sum_gt)
         self.num_class = len(list(self.verb_name_dict.keys()))
 
     def evalution(self, prediction_json):
@@ -47,13 +48,18 @@ class hoiw_eval():
         max_recall = np.zeros(self.num_class)
         for i in list(self.verb_name_dict.keys()):
             sum_gt = self.sum_gt[i]
+
             if sum_gt == 0:
                 continue
-            tp = (self.tp[i]).copy()
-            fp = (self.fp[i]).copy()
+            tp = np.asarray((self.tp[i]).copy())
+            fp = np.asarray((self.fp[i]).copy())
             res_num = len(tp)
             if res_num == 0:
                 continue
+            score = np.asarray(self.score[i].copy())
+            sort_inds = np.argsort(-score)
+            fp = fp[sort_inds]
+            tp = tp[sort_inds]
             rec = np.zeros(res_num)
             prec = np.zeros(res_num)
             for v in range(res_num):
@@ -102,9 +108,12 @@ class hoiw_eval():
                 else:
                     self.fp[pred_hoi_i['category_id']].append(1)
                     self.tp[pred_hoi_i['category_id']].append(0)
+                self.score[pred_hoi_i['category_id']].append(pred_hoi_i['score'])
 
     def compute_iou_mat(self, bbox_list1, bbox_list2):
         iou_mat = np.zeros((len(bbox_list1), len(bbox_list2)))
+        if len(bbox_list1) == 0 or len(bbox_list2) == 0:
+            return {}
         for i, bbox1 in enumerate(bbox_list1):
             max_iou = -0.1
             select_id = 0
