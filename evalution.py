@@ -35,10 +35,26 @@ class hoiw_eval():
                 continue
             gt_i = self.annotations[self.file_name.index(pred_i['file_name'])]
             gt_bbox = gt_i['annotations']
-            pred_bbox = pred_i['predictions']
-            bbox_pairs = self.compute_iou_mat(gt_bbox, pred_bbox)
-            pred_hoi = pred_i['hoi_prediction']
+            if 'predictions' in pred_i.keys():
+                pred_bbox = pred_i['predictions']
+            elif 'predcition' in pred_i.keys():
+                pred_bbox = pred_i['prediction']
+            elif 'annotations' in pred_i.keys():
+                pred_bbox = pred_i['annotations']
+            elif 'annotation' in pred_i.keys():
+                pred_bbox = pred_i['annotation']
+            else:
+                print('prediction file keys error')
+            if 'hoi_prediction' in pred_i.keys():
+                pred_hoi = pred_i['hoi_prediction']
+            elif 'hoi_predictions' in pred_i.keys():
+                pred_hoi = pred_i['hoi_predictions']
+            elif 'hoi_annotation' in pred_i.keys():
+                pred_hoi = pred_i['hoi_annotation']
+            else:
+                print('prediction file keys error')
             gt_hoi = gt_i['hoi_annotation']
+            bbox_pairs = self.compute_iou_mat(gt_bbox, pred_bbox)
             self.compute_fptp(pred_hoi, gt_hoi, bbox_pairs)
         map = self.compute_map()
         return map
@@ -95,10 +111,15 @@ class hoiw_eval():
                 if isinstance(pred_hoi_i['category_id'], str):
                     pred_hoi_i['category_id'] = int(pred_hoi_i['category_id'].replace('\n', ''))
                 if len(match_pairs) != 0 and pred_hoi_i['subject_id'] in pos_pred_ids and pred_hoi_i['object_id'] in pos_pred_ids:
-                    pred_dict_i = {'subject_id': match_pairs[pred_hoi_i['subject_id']], 'object_id': match_pairs[pred_hoi_i['object_id']], 'category_id': pred_hoi_i['category_id']}
-                    if pred_dict_i in gt_hoi and vis_tag[gt_hoi.index(pred_dict_i)] == 0:
-                        is_match = 1
-                        vis_tag[gt_hoi.index(pred_dict_i)] = 1
+                    pred_sub_ids = match_pairs[pred_hoi_i['subject_id']]
+                    pred_obj_ids = match_pairs[pred_hoi_i['object_id']]
+                    pred_category_id = pred_hoi_i['category_id']
+                    for gt_id in np.nonzero(1 - vis_tag)[0]:
+                        gt_hoi_i = gt_hoi[gt_id]
+                        if (gt_hoi_i['subject_id'] in pred_sub_ids) and (gt_hoi_i['object_id'] in pred_obj_ids) and (pred_category_id == gt_hoi_i['category_id']):
+                            is_match = 1
+                            vis_tag[gt_id] = 1
+                            continue
                 if pred_hoi_i['category_id'] not in list(self.fp.keys()):
                     continue
                 if is_match == 1:
@@ -115,22 +136,19 @@ class hoiw_eval():
         if len(bbox_list1) == 0 or len(bbox_list2) == 0:
             return {}
         for i, bbox1 in enumerate(bbox_list1):
-            max_iou = -0.1
-            select_id = 0
             for j, bbox2 in enumerate(bbox_list2):
                 iou_i = self.compute_IOU(bbox1, bbox2)
-                if iou_i > max_iou:
-                    select_id = j
-                    max_iou = iou_i
-            iou_mat[i, select_id] = max_iou
-        iou_mat[iou_mat>= 0.5] = 1
-        iou_mat[iou_mat< 0.5] = 0
+                iou_mat[i, j] = iou_i
+        iou_mat[iou_mat>= self.overlap_iou] = 1
+        iou_mat[iou_mat< self.overlap_iou] = 0
 
         match_pairs = np.nonzero(iou_mat)
         match_pairs_dict = {}
         if iou_mat.max() > 0:
-            for i, pred_id in enumerate(match_pairs[0]):
-                match_pairs_dict[pred_id] = match_pairs[1][i]
+            for i, pred_id in enumerate(match_pairs[1]):
+                if pred_id not in match_pairs_dict.keys():
+                    match_pairs_dict[pred_id] = []
+                match_pairs_dict[pred_id].append(match_pairs[0][i])
         return match_pairs_dict
 
     def compute_IOU(self, bbox1, bbox2):
