@@ -76,30 +76,29 @@ class hoiw_eval():
             sort_inds = np.argsort(-score)
             fp = fp[sort_inds]
             tp = tp[sort_inds]
-            rec = np.zeros(res_num)
-            prec = np.zeros(res_num)
-            for v in range(res_num):
-                if v > 0:
-                    tp[v] = tp[v] + tp[v - 1]
-                    fp[v] = fp[v] + fp[v - 1]
-                rec[v] = tp[v] / sum_gt
-                prec[v] = tp[v] / (tp[v] + fp[v])
-            for v in range(res_num - 2, -1, -1):
-                prec[v] = max(prec[v], prec[v + 1])
-            for v in range(res_num):
-                if v == 0:
-                    ap[i-1] += rec[v] * prec[v]
-                else:
-                    ap[i-1] += (rec[v] - rec[v - 1]) * prec[v]
+            fp = np.cumsum(fp)
+            tp = np.cumsum(tp)
+            rec = tp / sum_gt
+            prec = tp / (fp + tp)
+            ap[i - 1] = self.voc_ap(rec,prec)
             max_recall[i-1] = np.max(rec)
             print('class {} --- ap: {}   max recall: {}'.format(
                 i, ap[i-1], max_recall[i-1]))
-        mAP = np.mean(ap[1:])
-        m_rec = np.mean(max_recall[1:])
+        mAP = np.mean(ap[:])
+        m_rec = np.mean(max_recall[:])
         print('--------------------')
         print('mAP: {}   max recall: {}'.format(mAP, m_rec))
         print('--------------------')
         return mAP
+
+    def voc_ap(self, rec, prec):
+        mrec = np.concatenate(([0.], rec, [1.]))
+        mpre = np.concatenate(([0.], prec, [0.]))
+        for i in range(mpre.size - 1, 0, -1):
+            mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+        i = np.where(mrec[1:] != mrec[:-1])[0]
+        ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
+        return ap
 
     def compute_fptp(self, pred_hoi, gt_hoi, match_pairs):
         pos_pred_ids = match_pairs.keys()
