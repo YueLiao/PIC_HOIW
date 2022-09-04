@@ -4,7 +4,7 @@ import os
 
 class hoiw_eval():
     def __init__(self, annotation_file):
-        self.annotations = json.load(open(annotation_file, 'r'))
+        self.annotations = json.load(open(annotation_file, 'r')) if isinstance(annotation_file, str) else annotation_file
         self.overlap_iou = 0.5
         self.verb_name_dict = {1: 'smoke', 2: 'call', 3: 'play(cellphone)', 4: 'eat', 5: 'drink',
                             6: 'ride', 7: 'hold', 8: 'kick', 9: 'read', 10: 'play (computer)'}
@@ -29,7 +29,7 @@ class hoiw_eval():
         self.num_class = len(list(self.verb_name_dict.keys()))
 
     def evalution(self, prediction_json):
-        predict_annot = json.load(open(prediction_json, 'r'))
+        predict_annot = json.load(open(prediction_json, 'r')) if isinstance(prediction_json, str) else prediction_json
         for pred_i in predict_annot:
             if pred_i['file_name'] not in self.file_name:
                 continue
